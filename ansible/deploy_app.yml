@@ -1,0 +1,57 @@
+---
+- name: Deploy app container
+  hosts: web
+  become: yes
+
+  vars:
+    app_src_local: "../app"
+    app_dst_remote: "/opt/app"
+
+  tasks:
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create remote app directory
+      file:
+        path: "{{ app_dst_remote }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy app files to server
+      copy:
+        src: "{{ app_src_local }}/"
+        dest: "{{ app_dst_remote }}/"
+        mode: "0644"
+
+    - name: Build Docker image on the server
+      community.docker.docker_image:
+        name: app
+        source: build
+        build:
+          path: "{{ app_dst_remote }}"
+          dockerfile: "DockerFile"  
+        state: present
+
+    - name: Run the Node container
+      community.docker.docker_container:
+        name: app
+        image: app
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "80:8080"
+
+    - name: Wait for app to respond
+      uri:
+        url: http://104.154.192.68/
+      register: health
+      retries: 10
+      delay: 3
+      until: health.status == 200
+
+    - name: Show health response
+      debug:
+        var: health.status
