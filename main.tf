@@ -24,3 +24,49 @@ resource "google_compute_subnetwork" "subnet" {
   region        = "us-central1"
   network       = google_compute_network.vpc_network.id
 }
+
+resource "google_compute_firewall" "allow_ssh" {
+  name    = "terraform-firewall-allow-ssh"
+  network = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = [ "0.0.0.0/0"]
+}
+
+resource "google_compute_firewall" "allow_web" {
+  name    = "terraform-firewall-allow-web"
+  network = google_compute_network.vpc_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443"]
+  }
+
+  source_ranges = [ "0.0.0.0/0"]
+}
+
+resource "google_compute_instance" "vm_instance" {
+  name         = "vm-instance"
+  machine_type = "e2-medium"
+  zone         = "us-central1-c"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-12"
+      labels = {
+        my_label = "value"
+      }
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.subnet.id
+
+    access_config {}
+  }
+}
