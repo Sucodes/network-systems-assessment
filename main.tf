@@ -1,28 +1,15 @@
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "6.8.0"
-    }
-  }
-}
-
-provider "google" {
-  project = "network-systems-assessment"
-  region  = "us-central1"
-  zone    = "us-central1-c"
-}
-
 resource "google_compute_network" "vpc_network" {
   name                    = "terraform-network"
   auto_create_subnetworks = false
+  routing_mode            = "REGIONAL"
 }
 
 resource "google_compute_subnetwork" "subnet" {
-  name          = "terraform-subnetwork"
-  ip_cidr_range = "10.0.0.0/24"
-  region        = "us-central1"
-  network       = google_compute_network.vpc_network.id
+  name                     = "terraform-subnetwork"
+  ip_cidr_range            = var.subnet_cidr
+  region                   = var.region
+  network                  = google_compute_network.vpc_network.id
+  private_ip_google_access = true
 }
 
 resource "google_compute_firewall" "allow_ssh" {
@@ -37,7 +24,7 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = ["79.140.223.114/32"]
+  source_ranges = [var.allowed_ssh_cidr]
 }
 
 resource "google_compute_firewall" "allow_web" {
@@ -57,12 +44,13 @@ resource "google_compute_firewall" "allow_web" {
 
 resource "google_compute_instance" "vm_instance" {
   name         = "vm-instance"
-  machine_type = "e2-medium"
-  zone         = "us-central1-c"
+  machine_type = var.machine_type
+  zone         = var.zone
+  tags         = ["ssh", "web"]
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-12"
+      image = var.boot_image
       labels = {
         my_label = "value"
       }
