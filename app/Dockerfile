@@ -6,8 +6,8 @@ WORKDIR /app
 
 # Install app dependencies
 COPY package*.json ./
-RUN npm cache clean --force \
- && npm ci --omit=dev
+RUN npm cache clean --force
+# && npm ci --omit=dev
 RUN npm install --production
 
 

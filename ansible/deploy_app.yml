@@ -14,63 +14,18 @@
         state: started
         enabled: yes
 
-    - name: Remove old app directory
-      file:
-        path: "{{ app_dst_remote }}"
-        state: absent
-
-    - name: Create fresh app directory
-      file:
-        path: "{{ app_dst_remote }}"
-        state: directory
-        mode: "0755"
-
-    - name: Create remote app directory
-      file:
-        path: "{{ app_dst_remote }}"
-        state: directory
-        mode: "0755"
-
     - name: Copy app files to server
       copy:
         src: "{{ app_src_local }}/"
         dest: "{{ app_dst_remote }}/"
         mode: "0644"
 
-    - name: Remove old Docker containers
-      community.docker.docker_prune:
-        containers: yes
-        images: no
-        networks: no
-        volumes: no
-
-    - name: Remove dangling Docker images and cache
-      community.docker.docker_prune:
-        containers: no
-        images: yes
-        networks: no
-        volumes: no
-
-    - name: Build Docker image on the server
-      community.docker.docker_image:
-        name: app
-        source: build
-        build:
-          path: "{{ app_dst_remote }}"
-          nocache: yes
-          pull: yes
-        state: present
-
-    - name: Run the Node container
-      community.docker.docker_container:
-        name: app
-        image: app:latest
-        state: started
-        restart_policy: unless-stopped
-        recreate: yes
-        force_kill: yes
-        ports:
-          - "80:8080"
+    - name: Build and run Docker container
+      run: |
+        cd /opt/app \
+        && docker stop $(docker ps -aq) && docker rm $(docker ps -aq) \
+        && docker build --no-cache -t my-node-app:latest . \
+        && docker run -d -p 80:8080 --name node_app_container my-node-app:latest
 
     - name: Wait for app to respond
       uri:
