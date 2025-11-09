@@ -32,7 +32,7 @@
         source: build
         build:
           path: "{{ app_dst_remote }}"
-          dockerfile: "DockerFile"  
+          dockerfile: "Dockerfile"  
         state: present
 
     - name: Run the Node container
