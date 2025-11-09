@@ -13,6 +13,17 @@
         name: docker
         state: started
         enabled: yes
+    
+    - ⁠name: Remove old app directory
+      file:
+        path: "{{ app_dst_remote }}"
+        state: absent
+    
+    - name: Create fresh app directory
+      file:
+        path: "{{ app_dst_remote }}"
+        state: directory
+        mode: "0755"
 
     - name: Create remote app directory
       file:
@@ -47,12 +58,13 @@
         build:
           path: "{{ app_dst_remote }}"
           nocache: yes
+          pull: yes
         state: present
 
     - name: Run the Node container
       community.docker.docker_container:
         name: app
-        image: app
+        image: app:latest
         state: started
         restart_policy: unless-stopped
         recreate: yes
