@@ -26,13 +26,27 @@
         dest: "{{ app_dst_remote }}/"
         mode: "0644"
 
+    - name: Remove old Docker containers
+      community.docker.docker_prune:
+        containers: yes
+        images: no
+        networks: no
+        volumes: no
+
+    - name: Remove dangling Docker images and cache
+      community.docker.docker_prune:
+        containers: no
+        images: yes
+        networks: no
+        volumes: no
+
     - name: Build Docker image on the server
       community.docker.docker_image:
         name: app
         source: build
         build:
           path: "{{ app_dst_remote }}"
-          dockerfile: "Dockerfile"  
+          nocache: yes
         state: present
 
     - name: Run the Node container
