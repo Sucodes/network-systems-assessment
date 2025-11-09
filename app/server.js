@@ -4,7 +4,7 @@ const path = require("path");
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("Hello World! This is Node.js application running inside a Docker container.");
+  res.send("Hello World! This is Money");
 });
 
 const PORT = 8080;
