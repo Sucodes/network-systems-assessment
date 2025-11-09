@@ -32,10 +32,15 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VM_HOST: ${{ secrets.VM_HOST }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/gcp
-          chmod 600 ~/.ssh/gcp
-          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+            set -euo pipefail
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/gcp
+            sed -i 's/\r$//' ~/.ssh/gcp
+            chmod 600 ~/.ssh/gcp
+            nc -z -w 5 "$VM_HOST" 22 || echo "Warning, port 22 no open from runner"
+            ssh-keyscan -T 10 -H "$VM_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            ls -l ~/.ssh
 
       - name: Create inventory file dynamically
         run: |
