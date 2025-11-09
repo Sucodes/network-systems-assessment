@@ -21,11 +21,14 @@
         mode: "0644"
 
     - name: Build and run Docker container
-      run: |
-        cd /opt/app \
-        && docker stop $(docker ps -aq) && docker rm $(docker ps -aq) \
-        && docker build --no-cache -t my-node-app:latest . \
-        && docker run -d -p 80:8080 --name node_app_container my-node-app:latest
+      shell: |
+        set -e
+        cd {{ app_dst_remote }}
+        docker rm -f node_app_container || true
+        docker build --no-cache -t my-node-app:latest .
+        docker run -d --restart unless-stopped -p 80:8080 --name node_app_container my-node-app:latest
+      args:
+        executable: /bin/bash
 
     - name: Wait for app to respond
       uri:
