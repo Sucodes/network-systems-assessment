@@ -2,7 +2,7 @@ all:
   hosts:
     vm1:
       ansible_host: 104.154.192.68
-      ansible_user: vm-instance
+      ansible_user: dukkalimited
       ansible_ssh_private_key_file: ~/.ssh/gcp
   children:
     web:

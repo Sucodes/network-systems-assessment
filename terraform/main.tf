@@ -24,7 +24,7 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = [var.allowed_ssh_cidr]
+  source_ranges = ["0.0.0.0/0"]
 }
 
 resource "google_compute_firewall" "allow_web" {
