@@ -44,7 +44,7 @@
         recreate: yes
         force_kill: yes
         ports:
-          - "80:80"
+          - "80:8080"
 
     - name: Wait for app to respond
       uri:
