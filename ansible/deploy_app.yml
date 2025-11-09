@@ -49,11 +49,6 @@
           nocache: yes
         state: present
 
-    - name: Clear npm cache
-      shell: npm cache clean --force
-      args:
-        chdir: /app
-
     - name: Run the Node container
       community.docker.docker_container:
         name: app
